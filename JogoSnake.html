@@ -1,66 +1,69 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR"> <!-- Define o idioma como português do Brasil -->
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"> <!-- Suporte a acentos -->
   <title>Snake Game</title>
   <style>
+    /* === ESTILOS GERAIS === */
     body {
-      font-family: Arial, sans-serif;
-      background: #222;
-      color: #fff;
-      text-align: center;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
+      font-family: Arial, sans-serif; /* Fonte usada no jogo */
+      background: #222;               /* Fundo cinza escuro */
+      color: #fff;                    /* Texto branco */
+      text-align: center;             /* Centraliza textos */
+      margin: 0;                      /* Remove margens padrão */
+      display: flex;                  /* Usa Flexbox */
+      flex-direction: column;         /* Organiza elementos em coluna */
+      align-items: center;            /* Centraliza horizontalmente */
+      justify-content: flex-start;    /* Alinha topo verticalmente */
+      height: 100vh;                  /* Ocupa toda altura da tela */
     }
 
-    header { margin: 10px; }
+    header { margin: 10px; } /* Espaço ao redor do cabeçalho */
 
     #gameCanvas {
-      background: #111;
-      border: 2px solid #0f0;
+      background: #111;         /* Fundo do campo de jogo */
+      border: 2px solid #0f0;   /* Borda verde neon */
     }
 
     .overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed;                 /* Sempre fixa na tela */
+      top: 0; left: 0;                 /* Começa no canto superior esquerdo */
+      width: 100%; height: 100%;       /* Ocupa tela inteira */
+      background: rgba(0,0,0,0.85);    /* Fundo preto transparente */
+      display: flex;                   /* Flexbox para centralizar */
+      align-items: center;             /* Centraliza verticalmente */
+      justify-content: center;         /* Centraliza horizontalmente */
     }
 
     .panel {
-      background: #333;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px #0f0;
+      background: #333;                /* Caixa cinza escura */
+      padding: 20px;                   /* Espaçamento interno */
+      border-radius: 12px;             /* Cantos arredondados */
+      box-shadow: 0 0 12px #0f0;       /* Sombra verde */
     }
 
     button {
-      padding: 10px 20px;
-      margin: 8px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background: #0f0;
-      color: #000;
-      font-weight: bold;
+      padding: 10px 20px;     /* Tamanho do botão */
+      margin: 8px;            /* Espaço externo */
+      font-size: 16px;        /* Tamanho da fonte */
+      border: none;           /* Remove borda padrão */
+      border-radius: 6px;     /* Arredonda o botão */
+      cursor: pointer;        /* Mostra cursor de mão */
+      background: #0f0;       /* Fundo verde */
+      color: #000;            /* Texto preto */
+      font-weight: bold;      /* Negrito */
     }
-    button:hover { background: #3f3; }
+    button:hover { background: #3f3; } /* Verde mais claro ao passar o mouse */
   </style>
 </head>
 <body>
+  <!-- Cabeçalho com título e HUD -->
   <header>
     <h1>🐍 Snake Game</h1>
     <p>Pontuação: <span id="score">0</span> | Vidas: <span id="lives">0</span></p>
   </header>
 
+  <!-- Área do jogo -->
   <canvas id="gameCanvas" width="400" height="400"></canvas>
 
   <!-- Tela inicial -->
@@ -68,9 +71,9 @@
     <div class="panel">
       <h2>Bem-vindo ao Snake!</h2>
       <p>Digite o número de vidas e clique em Start.</p>
-      <input type="number" id="lifeInput" min="1" max="5" value="3" />
+      <input type="number" id="lifeInput" min="1" max="5" value="3" /> <!-- Entrada de vidas -->
       <br><br>
-      <button onclick="startGame()">Start</button>
+      <button onclick="startGame()">Start</button> <!-- Botão para iniciar -->
     </div>
   </div>
 
@@ -84,65 +87,66 @@
   </div>
 
   <!-- Sons -->
-  <audio id="bgMusic" src="snake-fundo.mp3" loop></audio>
-  <audio id="eatSound" src="eat-snake.mp3"></audio>
-  <audio id="gameOverSound" src="game over-snake.mp3"></audio>
+  <audio id="bgMusic" src="snake-fundo.mp3" loop></audio> <!-- Música de fundo -->
+  <audio id="eatSound" src="eat-snake.mp3"></audio>       <!-- Som ao comer -->
+  <audio id="gameOverSound" src="game over-snake.mp3"></audio> <!-- Som ao perder -->
 
   <script>
-    // === VARIÁVEIS DO JOGO ===
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const scoreEl = document.getElementById("score");
-    const livesEl = document.getElementById("lives");
-    const startScreen = document.getElementById("startScreen");
-    const gameOverScreen = document.getElementById("gameOverScreen");
-    const finalScore = document.getElementById("finalScore");
+    // === VARIÁVEIS PRINCIPAIS ===
+    const canvas = document.getElementById("gameCanvas"); // Pega o canvas
+    const ctx = canvas.getContext("2d"); // Contexto 2D para desenhar
+    const scoreEl = document.getElementById("score"); // Span da pontuação
+    const livesEl = document.getElementById("lives"); // Span das vidas
+    const startScreen = document.getElementById("startScreen"); // Tela inicial
+    const gameOverScreen = document.getElementById("gameOverScreen"); // Tela de Game Over
+    const finalScore = document.getElementById("finalScore"); // Texto do placar final
 
     // Sons
     const bgMusic = document.getElementById("bgMusic");
     const eatSound = document.getElementById("eatSound");
     const gameOverSound = document.getElementById("gameOverSound");
 
-    let snake = [];
-    let direction = "RIGHT";
-    let food = {};
-    let score = 0;
-    let lives = 3;
-    let box = 20;
-    let gameInterval;
+    // Variáveis de controle do jogo
+    let snake = [];            // Array que guarda as partes da cobra
+    let direction = "RIGHT";   // Direção inicial
+    let food = {};             // Posição da comida
+    let score = 0;             // Pontuação
+    let lives = 3;             // Número de vidas
+    let box = 20;              // Tamanho de cada quadrado (20px)
+    let gameInterval;          // Intervalo do loop do jogo
 
-    // === INICIAR JOGO ===
+    // === FUNÇÃO: INICIAR O JOGO ===
     function startGame() {
-      const lifeInput = document.getElementById("lifeInput").value;
-      lives = parseInt(lifeInput) || 3;
-      score = 0;
-      snake = [{x: 9*box, y:10*box}];
-      direction = "RIGHT";
-      spawnFood();
-      updateHUD();
-      startScreen.style.display = "none";
-      gameOverScreen.style.display = "none";
-      clearInterval(gameInterval);
-      gameInterval = setInterval(draw, 150);
+      const lifeInput = document.getElementById("lifeInput").value; // Lê vidas do input
+      lives = parseInt(lifeInput) || 3; // Se inválido, usa 3 como padrão
+      score = 0; // Zera pontos
+      snake = [{x: 9*box, y:10*box}]; // Posição inicial da cobra
+      direction = "RIGHT"; // Direção inicial
+      spawnFood(); // Gera primeira comida
+      updateHUD(); // Atualiza HUD
+      startScreen.style.display = "none"; // Esconde tela inicial
+      gameOverScreen.style.display = "none"; // Esconde Game Over
+      clearInterval(gameInterval); // Garante que não há loops antigos
+      gameInterval = setInterval(draw, 150); // Chama função draw a cada 150ms
 
-      // Inicia música de fundo
+      // Música de fundo
       bgMusic.currentTime = 0;
       bgMusic.play();
     }
 
-    // === REINICIAR ===
+    // === FUNÇÃO: VOLTAR AO MENU ===
     function restartGame() {
       gameOverScreen.style.display = "none";
       startScreen.style.display = "flex";
     }
 
-    // === HUD ===
+    // === FUNÇÃO: ATUALIZAR HUD ===
     function updateHUD() {
       scoreEl.textContent = score;
       livesEl.textContent = lives;
     }
 
-    // === GERAR COMIDA ===
+    // === FUNÇÃO: GERAR COMIDA EM POSIÇÃO ALEATÓRIA ===
     function spawnFood() {
       food = {
         x: Math.floor(Math.random() * (canvas.width/box)) * box,
@@ -150,7 +154,7 @@
       };
     }
 
-    // === CONTROLE ===
+    // === CONTROLE DA COBRA (teclado) ===
     document.addEventListener("keydown", e => {
       if(e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
       else if(e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
@@ -160,90 +164,74 @@
 
     // === LOOP DO JOGO ===
     function draw() {
-  ctx.fillStyle = "#111";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Fundo
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Desenha cobra
-  for (let i = 0; i < snake.length; i++) {
-    ctx.fillStyle = (i === 0) ? "#0f0" : "#fff";
-    ctx.fillRect(snake[i].x, snake[i].y, box, box);
-    ctx.strokeStyle = "#000";
-    ctx.strokeRect(snake[i].x, snake[i].y, box, box);
-  }
+      // Desenha cobra
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = (i === 0) ? "#0f0" : "#fff"; // Cabeça verde, corpo branco
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+        ctx.strokeStyle = "#000";
+        ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+      }
 
-  // Desenha comida
-  ctx.fillStyle = "#f00";
-  ctx.fillRect(food.x, food.y, box, box);
+      // Desenha comida
+      ctx.fillStyle = "#f00"; // Vermelha
+      ctx.fillRect(food.x, food.y, box, box);
 
-  // Movimento da cobra
-  let snakeX = snake[0].x;
-  let snakeY = snake[0].y;
-  if (direction === "LEFT") snakeX -= box;
-  if (direction === "UP") snakeY -= box;
-  if (direction === "RIGHT") snakeX += box;
-  if (direction === "DOWN") snakeY += box;
+      // Posição da cabeça
+      let snakeX = snake[0].x;
+      let snakeY = snake[0].y;
 
-  // Se comeu a comida
-  if (snakeX === food.x && snakeY === food.y) {
-    score += 10;
-    eatSound.play();
-    spawnFood();
-  } else {
-    snake.pop();
-  }
+      // Movimento
+      if (direction === "LEFT") snakeX -= box;
+      if (direction === "UP") snakeY -= box;
+      if (direction === "RIGHT") snakeX += box;
+      if (direction === "DOWN") snakeY += box;
 
-  const newHead = { x: snakeX, y: snakeY };
+      // Se comer comida
+      if (snakeX === food.x && snakeY === food.y) {
+        score += 10;       // Soma pontos
+        eatSound.play();   // Toca som
+        spawnFood();       // Gera nova comida
+      } else {
+        snake.pop();       // Remove cauda se não comer
+      }
 
-  // === Verifica colisão ===
-  if (
-    snakeX < 0 || snakeY < 0 ||
-    snakeX >= canvas.width || snakeY >= canvas.height ||
-    collision(newHead, snake)
-  ) {
-    lives--; // perde uma vida
+      const newHead = { x: snakeX, y: snakeY }; // Nova posição da cabeça
 
-    if (lives > 0) {
-      // Reinicia a cobra no meio
-      snake = [{ x: 9 * box, y: 10 * box }];
-      direction = "RIGHT";
-      updateHUD();
-      return; // sai da função sem dar game over
-    } else {
-      // Fim de jogo
-      clearInterval(gameInterval);
-      finalScore.textContent = "Sua pontuação foi: " + score;
-      bgMusic.pause();
-      gameOverSound.play();
-      gameOverScreen.style.display = "flex";
-      return;
-    }
-  }
-
-      // Colisão
-      if(
-        snakeX < 0 || snakeY < 0 ||
-        snakeX >= canvas.width || snakeY >= canvas.height ||
-        collision(newHead, snake)
+      // === COLISÕES ===
+      if (
+        snakeX < 0 || snakeY < 0 || // Bateu fora da tela
+        snakeX >= canvas.width || snakeY >= canvas.height || // Borda direita/baixo
+        collision(newHead, snake) // Bateu no próprio corpo
       ) {
-        lives--;
-        if(lives <= 0) {
+        lives--; // Perde uma vida
+
+        if (lives > 0) {
+          // Reinicia a cobra no centro
+          snake = [{ x: 9 * box, y: 10 * box }];
+          direction = "RIGHT";
+          updateHUD();
+          return; // Sai sem acabar o jogo
+        } else {
+          // Se acabou as vidas -> Game Over
           clearInterval(gameInterval);
           finalScore.textContent = "Sua pontuação foi: " + score;
           bgMusic.pause();
           gameOverSound.play();
           gameOverScreen.style.display = "flex";
           return;
-        } else {
-          snake = [{x: 9*box, y:10*box}];
-          direction = "RIGHT";
         }
       }
 
+      // Adiciona nova cabeça ao corpo
       snake.unshift(newHead);
-      updateHUD();
+      updateHUD(); // Atualiza HUD
     }
 
-    // === COLISÃO ===
+    // === FUNÇÃO: DETECTAR COLISÃO COM O CORPO ===
     function collision(head, array) {
       for(let i=0; i<array.length; i++) {
         if(head.x === array[i].x && head.y === array[i].y) return true;
