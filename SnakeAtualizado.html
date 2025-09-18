@@ -2,55 +2,55 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8"> <!-- Define codificação UTF-8 -->
-    <title>Snake Game Responsivo</title> <!-- Título do jogo -->
+    <meta charset="UTF-8">
+    <title>Snake Game Responsivo</title>
     <style>
         /* ===== Estilo geral ===== */
         body {
-            font-family: Arial, sans-serif; /* Fonte do corpo */
-            background: #222; /* Cor de fundo */
-            color: #fff; /* Cor do texto */
-            margin: 0; /* Remove margem padrão */
-            display: flex; /* Usar flexbox */
-            flex-direction: column; /* Itens empilhados verticalmente */
-            align-items: center; /* Centraliza horizontalmente */
-            justify-content: flex-start; /* Começa do topo */
-            min-height: 100vh; /* Altura mínima = altura da tela */
-            text-align: center; /* Centraliza texto */
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            text-align: center;
         }
 
         header {
-            margin: 10px; /* Espaçamento do header */
+            margin: 10px;
         }
 
         /* ===== Canvas responsivo ===== */
         #gameCanvas {
-            background: #111; /* Fundo preto */
-            border: 2px solid #0f0; /* Borda verde neon */
             width: 90vw; /* Largura = 90% da tela */
-            max-width: 500px; /* Limite máximo */
+            max-width: 600px; /* Largura máxima para desktop */
             height: auto; /* Altura automática */
-            aspect-ratio: 1/1; /* Mantém proporção quadrada */
+            border: 2px solid #0f0;
+            background: #111;
+            display: block;
         }
 
         /* ===== Overlay de menus ===== */
         .overlay {
-            position: fixed; /* Fica sobre o canvas */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85); /* Fundo semitransparente */
-            display: flex; /* Flexbox */
-            align-items: center; /* Centraliza vertical */
-            justify-content: center; /* Centraliza horizontal */
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .panel {
-            background: #333; /* Fundo do painel */
+            background: #333;
             padding: 20px;
-            border-radius: 12px; /* Cantos arredondados */
-            box-shadow: 0 0 12px #0f0; /* Sombra verde */
+            border-radius: 12px;
+            box-shadow: 0 0 12px #0f0;
             width: 80%;
             max-width: 350px;
         }
@@ -78,7 +78,7 @@
         }
 
         p {
-            font-size: clamp(0.8rem, 2vw, 1rem); /* Texto responsivo */
+            font-size: clamp(0.8rem, 2vw, 1rem);
         }
     </style>
 </head>
@@ -121,7 +121,7 @@
     <audio id="gameOverSound" src="game over-snake.mp3"></audio>
 
     <script>
-        // ===== Seleção de elementos HTML =====
+        // ===== Seleção de elementos =====
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const scoreEl = document.getElementById("score");
@@ -137,29 +137,30 @@
         const gameOverSound = document.getElementById("gameOverSound");
 
         // ===== Variáveis do jogo =====
-        let snake = []; // Array da cobra
-        let direction = "RIGHT"; // Direção inicial
-        let food = {}; // Comida
-        let score = 0; // Pontuação
-        let lives = 3; // Vidas
-        let box = 20; // Tamanho da célula
-        let gameInterval; // Intervalo do loop
-        let speed = 200; // Velocidade inicial (ms)
-        let paused = false; // Pausa
-        let time = 0; // Tempo jogado
-        let timeInterval; // Intervalo do cronômetro
+        let snake = [];
+        let direction = "RIGHT";
+        let food = {};
+        let score = 0;
+        let lives = 3;
+        let box = 20; // tamanho da célula, será recalculado
+        let gameInterval;
+        let speed = 200;
+        let paused = false;
+        let time = 0;
+        let timeInterval;
 
-        // ===== Ajusta canvas responsivo =====
+        // ===== Função para ajustar canvas e box =====
         function resizeCanvas() {
-            const size = Math.min(window.innerWidth * 0.9, 500); // 90% da tela ou max 500px
+            const size = Math.min(window.innerWidth * 0.9, 600); // 90% da tela, max 600px
             canvas.width = size;
-            canvas.height = size; // Mantém quadrado
+            canvas.height = size;
+            box = Math.floor(size / 20); // recalcula tamanho da célula para escalar elementos
         }
 
-        window.addEventListener("resize", resizeCanvas); // Redimensiona ao alterar janela
-        resizeCanvas(); // Inicializa
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas(); // inicializa
 
-        // ===== Função iniciar jogo =====
+        // ===== Iniciar jogo =====
         function startGame() {
             const lifeInput = document.getElementById("lifeInput").value;
             lives = parseInt(lifeInput) || 3;
@@ -210,7 +211,7 @@
             timeEl.textContent = time;
         }
 
-        // ===== Gera comida =====
+        // ===== Spawn comida =====
         function spawnFood() {
             food = {
                 x: Math.floor(Math.random() * (canvas.width / box)) * box,
@@ -227,20 +228,18 @@
             else if (e.code === "Space") paused = !paused;
         });
 
-        // Tecla Enter inicia o jogo
         document.addEventListener("keydown", e => {
             if (e.code === "Enter" && startScreen.style.display !== "none") startGame();
         });
 
         // ===== Loop principal =====
         function draw() {
-            if (paused) return; // Se pausado, não atualiza
+            if (paused) return;
 
-            // Limpa fundo
             ctx.fillStyle = "#111";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Grade de fundo
+            // Grade
             ctx.strokeStyle = "rgba(255,255,255,0.1)";
             for (let x = 0; x < canvas.width; x += box) {
                 for (let y = 0; y < canvas.height; y += box) {
@@ -248,39 +247,38 @@
                 }
             }
 
-            // Desenha cobra
+            // Cobra
             for (let i = 0; i < snake.length; i++) {
                 if (i === 0) {
                     // Cabeça
                     ctx.fillStyle = "#0f0";
                     ctx.fillRect(snake[i].x, snake[i].y, box, box);
 
-                    // Olhos da cabeça
-                    ctx.fillStyle = "#fff"; // Parte branca
+                    // Olhos
+                    ctx.fillStyle = "#fff";
                     ctx.beginPath();
-                    ctx.arc(snake[i].x + box * 0.25, snake[i].y + box * 0.3, box * 0.1, 0, Math.PI * 2); // Olho esquerdo
-                    ctx.arc(snake[i].x + box * 0.75, snake[i].y + box * 0.3, box * 0.1, 0, Math.PI * 2); // Olho direito
+                    ctx.arc(snake[i].x + box * 0.25, snake[i].y + box * 0.3, box * 0.1, 0, Math.PI * 2);
+                    ctx.arc(snake[i].x + box * 0.75, snake[i].y + box * 0.3, box * 0.1, 0, Math.PI * 2);
                     ctx.fill();
 
-                    ctx.fillStyle = "#000"; // Pupilas
+                    ctx.fillStyle = "#000";
                     ctx.beginPath();
                     ctx.arc(snake[i].x + box * 0.25, snake[i].y + box * 0.3, box * 0.05, 0, Math.PI * 2);
                     ctx.arc(snake[i].x + box * 0.75, snake[i].y + box * 0.3, box * 0.05, 0, Math.PI * 2);
                     ctx.fill();
                 } else {
-                    // Corpo
                     ctx.fillStyle = "#7CFC00";
                     ctx.fillRect(snake[i].x, snake[i].y, box, box);
                 }
             }
 
-            // Desenha comida
+            // Comida
             ctx.font = `${Math.floor(box * 0.9)}px Arial`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText("🍎", food.x + box / 2, food.y + box / 2);
 
-            // Movimento da cobra
+            // Movimento
             let snakeX = snake[0].x;
             let snakeY = snake[0].y;
             if (direction === "LEFT") snakeX -= box;
@@ -294,17 +292,13 @@
                 eatSound.play();
                 spawnFood();
             } else {
-                snake.pop(); // Remove última parte do corpo
+                snake.pop();
             }
 
             const newHead = { x: snakeX, y: snakeY };
 
-            // Colisão com parede ou corpo
-            if (
-                snakeX < 0 || snakeY < 0 ||
-                snakeX >= canvas.width || snakeY >= canvas.height ||
-                collision(newHead, snake)
-            ) {
+            // Colisão
+            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
                 lives--;
                 if (lives > 0) {
                     snake = [{ x: 9 * box, y: 10 * box }];
@@ -323,11 +317,11 @@
                 }
             }
 
-            snake.unshift(newHead); // Adiciona nova cabeça
-            updateHUD(); // Atualiza HUD
+            snake.unshift(newHead);
+            updateHUD();
         }
 
-        // ===== Colisão com o próprio corpo =====
+        // Colisão corpo
         function collision(head, array) {
             for (let i = 0; i < array.length; i++) {
                 if (head.x === array[i].x && head.y === array[i].y) return true;
