@@ -3,37 +3,30 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Snake Game Responsivo</title>
+    <title>Snake Game </title>
     <style>
-        /* ===== Estilo geral ===== */
         body {
             font-family: Arial, sans-serif;
             background: #222;
             color: #fff;
+            text-align: center;
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            min-height: 100vh;
-            text-align: center;
+            height: 100vh;
         }
 
         header {
             margin: 10px;
         }
 
-        /* ===== Canvas responsivo ===== */
         #gameCanvas {
-            width: 90vw; /* Largura = 90% da tela */
-            max-width: 600px; /* Largura máxima para desktop */
-            height: auto; /* Altura automática */
-            border: 2px solid #0f0;
             background: #111;
-            display: block;
+            border: 2px solid #0f0;
         }
 
-        /* ===== Overlay de menus ===== */
         .overlay {
             position: fixed;
             top: 0;
@@ -51,14 +44,12 @@
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 0 12px #0f0;
-            width: 80%;
-            max-width: 350px;
         }
 
         button {
             padding: 10px 20px;
             margin: 8px;
-            font-size: 1rem;
+            font-size: 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -70,29 +61,19 @@
         button:hover {
             background: #3f3;
         }
-
-        input[type="number"] {
-            width: 60px;
-            padding: 5px;
-            font-size: 1rem;
-        }
-
-        p {
-            font-size: clamp(0.8rem, 2vw, 1rem);
-        }
     </style>
 </head>
 
 <body>
-    <!-- ===== Header do jogo ===== -->
     <header>
         <h1>🐍 Snake Game</h1>
-        <p>Pontuação: <span id="score">0</span> | Vidas: <span id="lives">0</span> | Tempo: <span id="time">0</span>s</p>
+        <!-- HUD agora tem também o tempo -->
+        <p>Pontuação: <span id="score">0</span> | Vidas: <span id="lives">0</span> | Tempo: <span id="time">0</span>s
+        </p>
         <p style="color: yellow;">👉 Use as setas para mover | Espaço = Pausar/Continuar</p>
     </header>
 
-    <!-- Canvas do jogo -->
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
 
     <!-- Tela inicial -->
     <div id="startScreen" class="overlay">
@@ -105,12 +86,12 @@
         </div>
     </div>
 
-    <!-- Tela Game Over -->
+    <!-- Tela de Game Over -->
     <div id="gameOverScreen" class="overlay" style="display:none;">
         <div class="panel">
             <h2>Game Over</h2>
             <p id="finalScore">Sua pontuação foi: 0</p>
-            <p id="finalTime">Você sobreviveu por: 0s</p>
+            <p id="finalTime">Você sobreviveu por: 0s</p> <!-- Mostra tempo final -->
             <button onclick="restartGame()">Jogar Novamente</button>
         </div>
     </div>
@@ -121,12 +102,12 @@
     <audio id="gameOverSound" src="game over-snake.mp3"></audio>
 
     <script>
-        // ===== Seleção de elementos =====
+        // === VARIÁVEIS ===
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const scoreEl = document.getElementById("score");
         const livesEl = document.getElementById("lives");
-        const timeEl = document.getElementById("time");
+        const timeEl = document.getElementById("time"); // tempo na tela
         const startScreen = document.getElementById("startScreen");
         const gameOverScreen = document.getElementById("gameOverScreen");
         const finalScore = document.getElementById("finalScore");
@@ -136,36 +117,26 @@
         const eatSound = document.getElementById("eatSound");
         const gameOverSound = document.getElementById("gameOverSound");
 
-        // ===== Variáveis do jogo =====
         let snake = [];
         let direction = "RIGHT";
         let food = {};
         let score = 0;
         let lives = 3;
-        let box = 20; // tamanho da célula, será recalculado
+        let box = 20;
         let gameInterval;
         let speed = 200;
         let paused = false;
-        let time = 0;
-        let timeInterval;
 
-        // ===== Função para ajustar canvas e box =====
-        function resizeCanvas() {
-            const size = Math.min(window.innerWidth * 0.9, 600); // 90% da tela, max 600px
-            canvas.width = size;
-            canvas.height = size;
-            box = Math.floor(size / 20); // recalcula tamanho da célula para escalar elementos
-        }
+        // Controle do tempo
+        let time = 0;          // contador em segundos
+        let timeInterval;      // intervalo para contar segundos
 
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas(); // inicializa
-
-        // ===== Iniciar jogo =====
+        // === INICIAR JOGO ===
         function startGame() {
             const lifeInput = document.getElementById("lifeInput").value;
             lives = parseInt(lifeInput) || 3;
             score = 0;
-            time = 0;
+            time = 0; // zera tempo
             speed = 200;
             snake = [{ x: 9 * box, y: 10 * box }];
             direction = "RIGHT";
@@ -177,7 +148,7 @@
             clearInterval(timeInterval);
             gameInterval = setInterval(draw, speed);
 
-            // Cronômetro
+            // cronômetro aumenta a cada 1s
             timeInterval = setInterval(() => {
                 if (!paused) {
                     time++;
@@ -185,12 +156,14 @@
                 }
             }, 1000);
 
-            // Aumenta velocidade a cada 20s
+            // aumenta velocidade a cada 20s
             setInterval(() => {
-                if (!paused && speed > 60) {
-                    speed -= 20;
-                    clearInterval(gameInterval);
-                    gameInterval = setInterval(draw, speed);
+                if (!paused) {
+                    if (speed > 60) {
+                        speed -= 20;
+                        clearInterval(gameInterval);
+                        gameInterval = setInterval(draw, speed);
+                    }
                 }
             }, 20000);
 
@@ -198,20 +171,20 @@
             bgMusic.play();
         }
 
-        // ===== Reiniciar =====
+        // Reiniciar
         function restartGame() {
             gameOverScreen.style.display = "none";
             startScreen.style.display = "flex";
         }
 
-        // ===== Atualiza HUD =====
+        // Atualizar HUD
         function updateHUD() {
             scoreEl.textContent = score;
             livesEl.textContent = lives;
             timeEl.textContent = time;
         }
 
-        // ===== Spawn comida =====
+        // Criar comida
         function spawnFood() {
             food = {
                 x: Math.floor(Math.random() * (canvas.width / box)) * box,
@@ -219,52 +192,62 @@
             };
         }
 
-        // ===== Controles =====
+        // Controles
         document.addEventListener("keydown", e => {
             if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
             else if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
             else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
             else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
-            else if (e.code === "Space") paused = !paused;
+            else if (e.code === "Space") togglePause();
         });
 
+        // Permitir iniciar com a tecla Enter
         document.addEventListener("keydown", e => {
-            if (e.code === "Enter" && startScreen.style.display !== "none") startGame();
+            if (e.code === "Enter" && startScreen.style.display !== "none") {
+                startGame(); // Inicia o jogo
+            }
         });
 
-        // ===== Loop principal =====
+
+        // Alternar pause
+        function togglePause() {
+            paused = !paused;
+        }
+
+        // Loop principal
         function draw() {
             if (paused) return;
 
+            // Fundo preto
             ctx.fillStyle = "#111";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Grade
+            // === Grade de fundo (quadradinhos brancos com baixa opacidade) ===
             ctx.strokeStyle = "rgba(255,255,255,0.1)";
             for (let x = 0; x < canvas.width; x += box) {
                 for (let y = 0; y < canvas.height; y += box) {
                     ctx.strokeRect(x, y, box, box);
                 }
             }
+            // ================================================================
 
             // Cobra
             for (let i = 0; i < snake.length; i++) {
                 if (i === 0) {
-                    // Cabeça
                     ctx.fillStyle = "#0f0";
                     ctx.fillRect(snake[i].x, snake[i].y, box, box);
 
-                    // Olhos
+                    // Olhos da cabeça
                     ctx.fillStyle = "#fff";
                     ctx.beginPath();
-                    ctx.arc(snake[i].x + box * 0.25, snake[i].y + box * 0.3, box * 0.1, 0, Math.PI * 2);
-                    ctx.arc(snake[i].x + box * 0.75, snake[i].y + box * 0.3, box * 0.1, 0, Math.PI * 2);
+                    ctx.arc(snake[i].x + 5, snake[i].y + 5, 3, 0, Math.PI * 2);
+                    ctx.arc(snake[i].x + 15, snake[i].y + 5, 3, 0, Math.PI * 2);
                     ctx.fill();
 
                     ctx.fillStyle = "#000";
                     ctx.beginPath();
-                    ctx.arc(snake[i].x + box * 0.25, snake[i].y + box * 0.3, box * 0.05, 0, Math.PI * 2);
-                    ctx.arc(snake[i].x + box * 0.75, snake[i].y + box * 0.3, box * 0.05, 0, Math.PI * 2);
+                    ctx.arc(snake[i].x + 5, snake[i].y + 5, 1.5, 0, Math.PI * 2);
+                    ctx.arc(snake[i].x + 15, snake[i].y + 5, 1.5, 0, Math.PI * 2);
                     ctx.fill();
                 } else {
                     ctx.fillStyle = "#7CFC00";
@@ -272,15 +255,15 @@
                 }
             }
 
-            // Comida
-            ctx.font = `${Math.floor(box * 0.9)}px Arial`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
+            // comida 🍎 centralizada no quadrado
+            ctx.font = "18px Arial";                // Tamanho da maçã
+            ctx.textAlign = "center";               // Alinha horizontalmente ao centro
+            ctx.textBaseline = "middle";            // Alinha verticalmente ao centro
             ctx.fillText("🍎", food.x + box / 2, food.y + box / 2);
 
-            // Movimento
             let snakeX = snake[0].x;
             let snakeY = snake[0].y;
+
             if (direction === "LEFT") snakeX -= box;
             if (direction === "UP") snakeY -= box;
             if (direction === "RIGHT") snakeX += box;
@@ -298,7 +281,11 @@
             const newHead = { x: snakeX, y: snakeY };
 
             // Colisão
-            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
+            if (
+                snakeX < 0 || snakeY < 0 ||
+                snakeX >= canvas.width || snakeY >= canvas.height ||
+                collision(newHead, snake)
+            ) {
                 lives--;
                 if (lives > 0) {
                     snake = [{ x: 9 * box, y: 10 * box }];
@@ -320,6 +307,7 @@
             snake.unshift(newHead);
             updateHUD();
         }
+
 
         // Colisão corpo
         function collision(head, array) {
